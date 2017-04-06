@@ -1,0 +1,102 @@
+Un rayon a pour equation :
+ray = O + Dir * t
+O = position d'origine (dans un plan 3D)
+Dir = la direction du rayon (vecteur 3D)
+t = la distance parcourue par le rayon
+
+Pour chaque pixel de la fenetre et de gauche a droite puis de haut en bas, un
+rayon sera trace pour savoir ce qu'il "frappe".
+
+Il faut donc un plan avec un point d'origine, un point pour determiner la
+position de la camera, et un vecteur de direction pour savoir ou l'on regarde.
+
+Et comme pour chaque pixel de la fenetre, nous devons tracer un rayon, il nous
+faut un "viewplane" : un viewplane nous permettra de simuler la fenetre que l'on
+affichera au final.
+
+Le viewplane a 3 parametres :
+-Largeur
+-Hauteur
+-Distance (par rapport a notre position dans l'espace)
+
+Les valeurs dependent du FOV.
+
+Le coin en haut a gauche peut se calculer de la facon suivante :
+
+=> camPos + ((vecDir * viewplaneDist) + (upVec * (viewplaneHeight / 2.0)))
+	- (rightVec * (viewplaneWidth / 2.0))
+
+camPos est la position de la camera dans l'espace.
+vecDir est la direction de la camera.
+viewplaneDist est la distance separant la camera et le viewplane.
+upVec/rightVec sont des vecteurs unitaire representant le haut et la droite
+de la camera.
+
+Une fois la position dans l'espace d'un pixel du viewplane calcule, on peut
+deduire la position de chacun des pixels suivants de cette facon :
+
+viewplaneUpLeft + rightVec*x*Xindent - upVec*y*Yindent
+
+et Xindent et Yindent se calcule comme suit :
+Xindent = viewplaneWidth/WIN_X
+Iindent = viewplaneHeight/WIN_Y
+(Donc en fonction de la taille de l'image.)
+
+Une formule en C pour aider ?
+
+
+________________________________________________________________________________
+
+#define WIN_X 640
+#define WIN_Y 480
+
+typedef struct	s_3d
+{
+	double		x;
+	double		y;
+	double		z;
+}				t_3d;
+
+
+void	raytracer(t_3d cam, t_3d plane, t_3d vecDir, t_3d upVec, t_3d rightVec)
+{
+	t_3d	viewPlaneUpLeft =
+	{camPos.x + ((vecDir.x * plane.z) + (upVec.x * (plane.y / 2.0)))
+		- (rightVec.z * (plane.x / 2.0)),
+	camPos.y + ((vecDir.y * plane.z) + (upVec.y * (plane.y / 2.0)))
+		- (rightVec.z * (plane.x / 2.0)),
+	camPos.z + ((vecDir.z * plane.z) + (upVec.z * (plane.y / 2.0)))
+		- (rightVec.z * (plane.x / 2.0))};
+	double	x,y,Xindent,Yindent;
+
+	Xindent = plane.x / WIN_X;
+	Yindent = plane.y / WIN_Y;
+	x = -1;
+	while (++x != WIN_X)
+	{
+		y = -1;
+		while (++y != WIN_Y)
+		{
+			cast_ray(viewPlaneUpLeft);
+			viewPlaneULeft += rightVec*Yindent*y - upVec*Xindent*x;
+		}
+	}
+}
+
+int		main(void)
+{
+	t_3d		cam = {0,0,0};
+	t_3d		plane = {0.35, 0.5, 1.0};
+	t_3d		dir = {1,0,0};
+	t_3d		upVec = {0,0,1};
+	t_3d		rightvec = {0,1,0};
+	
+	raytracer(cam, plane, dir, upVec, rightVec);
+	return (0);
+}
+
+________________________________________________________________________________
+
+
+
+Le lancer de rayon peut commencer.
